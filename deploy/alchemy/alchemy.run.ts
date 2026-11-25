@@ -370,6 +370,8 @@ const dataEnv = {
   // below, which also replaces an unset BETTER_AUTH_SECRET in password mode.
   DATAFORSEO_API_KEY: optionalSecret("DATAFORSEO_API_KEY"),
   TREG_API_TOKEN: optionalSecret("TREG_API_TOKEN"),
+  ALERT_EMAIL_TO: optionalVar("ALERT_EMAIL_TO"),
+  ALERT_EMAIL_FROM: optionalVar("ALERT_EMAIL_FROM"),
   BYPASS_EMAIL_VERIFICATION: optionalVar("BYPASS_EMAIL_VERIFICATION"),
   BETTER_AUTH_SECRET: optionalSecret("BETTER_AUTH_SECRET"),
   CRAWLER_ACCESS_SECRET: optionalSecret("CRAWLER_ACCESS_SECRET"),
@@ -604,6 +606,12 @@ export default Alchemy.Stack(
       yield* auditWorker.bind("hyperdrive", hyperdriveBinding(hyperdriveId));
     }
 
+    // The daily Search Console digest email (dailyDigest.ts), bound only when
+    // the deployment names a recipient.
+    const alertEmail = (yield* dataEnv.ALERT_EMAIL_TO)
+      ? yield* Cloudflare.Email.SendEmail("ALERT_EMAIL")
+      : undefined;
+
     const app = yield* Cloudflare.Worker("open-seo", {
       name: workerName(stage),
       // Prod serves the real domains; the zone is inferred from the hostname.
@@ -660,6 +668,7 @@ export default Alchemy.Stack(
         // Service binding to the audit worker's AuditEngine entrypoint (cancel
         // and account deletion's scratchpad wipe; env key = binding name).
         AUDIT_ENGINE: auditWorker,
+        ...(alertEmail ? { ALERT_EMAIL: alertEmail } : {}),
 
         // Per-user throttle for /mcp API-key auth (see
         // src/server/mcp/api-key-auth.ts). Only this stack declares the

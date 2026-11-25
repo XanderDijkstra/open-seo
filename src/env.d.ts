@@ -141,6 +141,12 @@ declare namespace Cloudflare {
     OPENROUTER_BASE_URL?: string;
     // Optional OpenRouter model slug override (defaults in openrouter.ts).
     OPENROUTER_MODEL?: string;
+
+    // Daily Search Console digest (self-hosted): Cloudflare Email Sending
+    // binding, recipient, and a sender on a domain enabled for sending.
+    ALERT_EMAIL?: SendEmail;
+    ALERT_EMAIL_TO?: string;
+    ALERT_EMAIL_FROM?: string;
   }
 }
 

@@ -63,8 +63,17 @@ async function deleteByProjectId(projectId: string): Promise<void> {
     .where(eq(gscConnections.projectId, projectId));
 }
 
+/** Every organization with at least one connected project. */
+async function listOrganizationIds(): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ organizationId: gscConnections.organizationId })
+    .from(gscConnections);
+  return rows.map((row) => row.organizationId);
+}
+
 export const GscConnectionRepository = {
   getByProjectId,
+  listOrganizationIds,
   upsert,
   deleteByProjectId,
 };

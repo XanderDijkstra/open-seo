@@ -283,6 +283,9 @@ export { SamChatAgent } from "./server/features/sam/SamChatAgent";
 // Daily OAuth KV garbage collection; must match a trigger in wrangler.jsonc.
 const MCP_OAUTH_PURGE_CRON = "17 3 * * *";
 
+// Daily Search Console digest email; must match a trigger in wrangler.jsonc.
+const PORTFOLIO_DIGEST_CRON = "0 6 * * *";
+
 export default {
   fetch,
   async scheduled(
@@ -341,6 +344,13 @@ export default {
           console.error("[cron] Account deletion run failed:", err);
         }
       }
+      return;
+    }
+
+    if (controller.cron === PORTFOLIO_DIGEST_CRON) {
+      const { sendDailyPortfolioDigest } =
+        await import("@/server/features/portfolio/services/dailyDigest");
+      await withPgClient(() => sendDailyPortfolioDigest(env));
       return;
     }
 
