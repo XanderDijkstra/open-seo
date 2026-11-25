@@ -39,6 +39,7 @@ const DAILY_ROW_LIMIT = 200;
 async function listSitePerformance(
   organizationId: string,
   dateRange: GscDateRange,
+  excludeProjectIds: string[] = [],
 ): Promise<{
   startDate: string;
   endDate: string;
@@ -48,7 +49,9 @@ async function listSitePerformance(
 }> {
   const { startDate, endDate } = resolveDateRange({ dateRange });
   const previous = previousPeriod(startDate, endDate);
-  const projects = await ProjectService.listProjects(organizationId);
+  const projects = (await ProjectService.listProjects(organizationId)).filter(
+    (project) => !excludeProjectIds.includes(project.id),
+  );
 
   const sites: PortfolioSite[] = [];
   let next = 0;

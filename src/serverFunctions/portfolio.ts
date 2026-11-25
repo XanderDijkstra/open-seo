@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { DigestSettings } from "@/server/features/portfolio/services/digestSettings";
 import { PortfolioService } from "@/server/features/portfolio/services/PortfolioService";
 import { requireAuthenticatedContext } from "@/serverFunctions/middleware";
 
@@ -24,3 +25,26 @@ export const getPortfolioPerformance = createServerFn({ method: "POST" })
       data.dateRange,
     ),
   );
+
+/** Every project, with whether the daily digest email includes it. */
+export const getDigestProjects = createServerFn({ method: "POST" })
+  .middleware(requireAuthenticatedContext)
+  .handler(async ({ context }) =>
+    DigestSettings.listProjects(context.organizationId),
+  );
+
+const digestInclusionSchema = z.object({
+  projectIds: z.array(z.string().min(1)).min(1).max(500),
+  included: z.boolean(),
+});
+
+export const setDigestProjectsIncluded = createServerFn({ method: "POST" })
+  .middleware(requireAuthenticatedContext)
+  .validator(digestInclusionSchema)
+  .handler(async ({ data, context }) => {
+    await DigestSettings.setIncluded(
+      context.organizationId,
+      data.projectIds,
+      data.included,
+    );
+  });
